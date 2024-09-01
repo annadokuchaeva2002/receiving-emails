@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сообщения</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #progress-bar-container {
+            width: 100%;
+            background-color: #f2f2f2;
+            margin-bottom: 20px;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Сообщения</h1>
+
+    <div id="progress-bar-container">
+        <div id="progress-bar">Чтение сообщений...</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Тема</th>
+                <th>Дата отправки</th>
+                <th>Дата получения</th>
+                <th>Текст</th>
+                <th>Файлы</th>
+            </tr>
+        </thead>
+        <tbody id="messages-table-body">
+            {% for message in messages %}
+            <tr>
+                <td>{{ message.subject }}</td>
+                <td>{{ message.date_of_dispatch }}</td>
+                <td>{{ message.date_of_receipt }}</td>
+                <td>{{ message.text|safe }}</td>
+                <td>
+                    {% if message.files.all %}
+                        {% for file in message.files.all %}
+                            <a href="{% url 'download_file' file.id %}" download>{{ file.name }}</a><br>
+                        {% endfor %}
+                    {% else %}
+                        Нет файлов
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function updateProgressBar(percentage, message) {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = message;
+        }
+
+        let totalMessages = {{ messages|length }};
+        let processedMessages = 0;
+
+        function simulateFetchingMessages() {
+            const interval = setInterval(() => {
+                if (processedMessages < totalMessages) {
+                    processedMessages++;
+                    const percentage = (processedMessages / totalMessages) * 100;
+                    updateProgressBar(percentage, `Получение сообщений... (${processedMessages}/${totalMessages})`);
+                } else {
+                    clearInterval(interval);
+                    updateProgressBar(100, "Все сообщения получены!");
+                }
+            }, 1000);
+        }
+
+        simulateFetchingMessages();
+    </script>
+</body>
+</html>
+
